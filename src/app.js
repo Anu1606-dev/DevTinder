@@ -5,17 +5,11 @@ const app = express();
 const User = require('./models/user');
 const port = 7777;
 
+app.use(express.json()); // middleware to parse JSON request bodies
+
 app.post("/signup", async (req, res) => {
     // creating a new user instance using the User model
-    const user = new User({
-        firstName: "Anu",
-        lastName: "Sarkar",
-        email: "example@gmail.com",
-        password: "123456",
-        age: 21,
-        gender: "Female"
-    });
-
+    const user = new User(req.body); // creating a new user instance using the User model
     try {
         // saving the user instance to the database
         await user.save();
