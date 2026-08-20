@@ -1,26 +1,23 @@
 // creating Express.js Server
 const express = require('express');
+const connectDB = require('./config/database');
 const app = express();
 const port = 7777;
 
-app.get("/getUserData", (req, res) => {
-    try{
-        throw new Error("Error while fetching user data!!");
-    res.send("user data sent!!");
-    }catch(err){
-        res.status(500).send("Internal Server Error!!");
-    }
+//Best practice-> connect the database first before starting the application
+connectDB().then(() => { 
+    // connect to database first 
+    console.log("MongoDB connected successfully!!");
+    // listening to port(starting the application)
+    app.listen(port, () => {
+        console.log(`Example app listening on port ${port}`)
+    })
+
+}).catch((err) => {
+    console.log("Error while connecting to MongoDB!!");
+    console.log(err);
 });
 
-app.use("/", (err, req, res, next) => {
-    if(err){
-        // log your error
-        res.status(500).send("Internal Server Error!!");
-    }
-})
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
-})
 
 
