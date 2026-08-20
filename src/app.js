@@ -15,14 +15,22 @@ app.post("/signup", async (req, res) => {
         age: 21,
         gender: "Female"
     });
-    // saving the user instance to the database
-    await user.save();
-    // sending a response back to the client
-    res.send("User created successfully!!");
+
+    try {
+        // saving the user instance to the database
+        await user.save();
+        // sending a response back to the client
+        res.send("User created successfully!!");
+    }catch (err) {
+        // handling any errors that occur during the save operation
+        console.log("Error while creating user!!");
+        console.log(err);
+        res.status(500).send("Error while creating user!!");
+    }
 });
 
 //Best practice-> connect the database first before starting the application
-connectDB().then(() => { 
+connectDB().then(() => {
     // connect to database first 
     console.log("MongoDB connected successfully!!");
     // listening to port(starting the application)
