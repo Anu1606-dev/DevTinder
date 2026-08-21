@@ -4,6 +4,7 @@ const connectDB = require('./config/database');
 const app = express();
 const User = require('./models/user');
 const port = 7777;
+const mongoose = require('mongoose');
 
 app.use(express.json()); // middleware to parse JSON request bodies
 
@@ -57,6 +58,18 @@ app.get("/feed", async (req, res) => {
         res.status(400).send("Error while fetching users!!");
     }
 });
+
+// delete user
+app.delete("/deletedUser", async (req,res) => {
+    const userId = req.body.userId;
+    try{
+        const user = await User.findByIdAndDelete({_id: userId});
+        res.send("User deleted successfully!!");
+    }catch(err){
+        res.status(400).send("Error while deleting user!!");
+    }
+})
+
 
 //Best practice-> connect the database first before starting the application
 connectDB().then(() => {
