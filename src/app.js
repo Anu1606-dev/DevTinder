@@ -15,11 +15,46 @@ app.post("/signup", async (req, res) => {
         await user.save();
         // sending a response back to the client
         res.send("User created successfully!!");
-    }catch (err) {
+    } catch (err) {
         // handling any errors that occur during the save operation
         console.log("Error while creating user!!");
         console.log(err);
         res.status(500).send("Error while creating user!!");
+    }
+});
+
+// get user by email
+app.get("/user", async (req, res) => {
+    // Prefer query param for GET, fallback to body if provided
+    const email = (req.query.email || req.body?.email || "").trim();
+    if (!email) {
+        return res.status(400).send("Email is required. Use /user?email=example@gmail.com");
+    }
+    try {
+        // finding the user by email in the database
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            // if user is not found, send a 404 response
+            return res.status(404).send("User not found!!");
+        }
+        // send found user
+        return res.status(200).json(user);
+    } catch (err) {
+        // handling any errors that occur during the find operation
+        console.log("Error while fetching user!!");
+        console.log(err);
+        return res.status(500).send("Error while fetching user!!");
+    }
+});
+
+// Feed API -Get /feed - get all the users from the database
+app.get("/feed", async (req, res) => {
+    try {
+        const users = await User.find({});
+        res.send(users);
+    } catch (err) {
+        res.status(400).send("Error while fetching users!!");
     }
 });
 
