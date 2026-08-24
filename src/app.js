@@ -60,21 +60,50 @@ app.get("/feed", async (req, res) => {
 });
 
 // delete user
-app.delete("/deletedUser", async (req,res) => {
+app.delete("/deletedUser", async (req, res) => {
     const userId = req.body.userId;
-    try{
-        const user = await User.findByIdAndDelete({_id: userId});
+    try {
+        const user = await User.findByIdAndDelete({ _id: userId });
         res.send("User deleted successfully!!");
-    }catch(err){
+    } catch (err) {
         res.status(400).send("Error while deleting user!!");
     }
 })
 
+// update dat aof the user
+app.patch("/updateUser/:userId", async (req, res) => {
+    const userId = req.params?.userId;
+    const data = req.body;
+
+
+    try {
+        const ALLOWED_UPDATES = ["firstName", "lastName", "password", "age", "skills", "about", "photoUrl"];
+        const isUpdateAllowed = Object.keys(data).every((key) => ALLOWED_UPDATES.includes(key));
+        if (!isUpdateAllowed) {
+            throw new error("Invalid updates!!");
+        }
+        if(data?.skills.length > 10){
+            throw new error("Skills cannot be more than 10!!");
+        }
+
+        const user = await User.findByIdAndUpdate(
+            { _id: userId },
+            data,
+            { returnDocument: 'before', runValidators: true }
+        );
+        console.log(userId);
+        res.send("User updated successfully!!");
+    } catch (err) {
+        console.log("Error while updating user!!");
+        console.log(err);
+        res.status(400).send("Error while updating user!!");
+    }
+});
 
 //Best practice-> connect the database first before starting the application
 connectDB().then(() => {
     // connect to database first 
-    console.log("MongoDB connected successfully!!"));
+    console.log("MongoDB connected successfully!!");
     // listening to port(starting the application)
     app.listen(port, () => {
         console.log(`Example app listening on port ${port}`)
