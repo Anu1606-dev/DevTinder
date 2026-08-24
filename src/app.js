@@ -74,7 +74,7 @@ app.delete("/deletedUser", async (req,res) => {
 //Best practice-> connect the database first before starting the application
 connectDB().then(() => {
     // connect to database first 
-    console.log("MongoDB connected successfully!!");
+    console.log("MongoDB connected successfully!!"));
     // listening to port(starting the application)
     app.listen(port, () => {
         console.log(`Example app listening on port ${port}`)
