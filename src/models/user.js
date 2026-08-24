@@ -8,7 +8,9 @@ const validator = require('validator');
 const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
-        required: true
+        required: true,
+        minlength: 4,
+        maxlength: 30,
     },
     lastName: {
         type: String,
@@ -28,26 +30,6 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
-        validate(value) {
-            if(!validator.isStrongPassword(value)) {
-                throw new Error("Password is not strong enough!!" + value);
-            }
-        }
-    },
-    age: {
-        type: Number,
-        min: 18,
-    },
-    gender: {
-    },
-    password: {
-        type: String,
-        required: true,
-        validate(value) {
-            if(!validator.isStrongPassword(value)) {
-                throw new Error("Password is not strong enough!!" + value);
-            }
-        }
     },
     age: {
         type: Number,

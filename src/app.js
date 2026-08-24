@@ -5,17 +5,39 @@ const app = express();
 const User = require('./models/user');
 const port = 7777;
 const mongoose = require('mongoose');
+const { validateSignupData } = require('./utils/validate'); // importing the validation function for signup data
+const bcrypt = require('bcrypt'); // importing bcryptjs module to hash the password before saving to the database
 
 app.use(express.json()); // middleware to parse JSON request bodies
 
 app.post("/signup", async (req, res) => {
-    // creating a new user instance using the User model
-    const user = new User(req.body); // creating a new user instance using the User model
+
     try {
+        // validation of data
+        validateSignupData(req);
+
+        // destructuring the request body to get the user data
+        const { firstName, lastName, emailId, password, age, gender } = req.body;
+
+        //encrypting the password before saving to the database
+        const passwordHash = await bcrypt.hash(password, 10); // hashing the password with a salt round of 10
+        
+        // creating a new user instance using the User model
+        const user = new User({
+            firstName,
+            lastName,
+            email: emailId,
+            password: passwordHash, // saving the hashed password
+            age,
+            gender,
+        }); // creating a new user instance using the User model
+        
         // saving the user instance to the database
         await user.save();
+
         // sending a response back to the client
         res.send("User created successfully!!");
+
     } catch (err) {
         // handling any errors that occur during the save operation
         console.log("Error while creating user!!");
@@ -82,7 +104,7 @@ app.patch("/updateUser/:userId", async (req, res) => {
         if (!isUpdateAllowed) {
             throw new error("Invalid updates!!");
         }
-        if(data?.skills.length > 10){
+        if (data?.skills.length > 10) {
             throw new error("Skills cannot be more than 10!!");
         }
 
