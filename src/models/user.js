@@ -1,5 +1,9 @@
 // importing mongoose module
 const mongoose = require('mongoose');
+// validator module is used to validate email, password, and other fields in the user model
+// validator is a npm library that provides string validation and sanitization functions
+// importing validator module to validate email
+const validator = require('validator');
 // creating a schema for user model
 const userSchema = new mongoose.Schema({
     firstName: {
@@ -15,10 +19,35 @@ const userSchema = new mongoose.Schema({
         unique: true,
         lowercase: true,
         trim: true,
+        validate(value) {
+            if(!validator.isEmail(value)) {
+                throw new Error("Email is invalid!!" + value);
+            }
+        }
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        validate(value) {
+            if(!validator.isStrongPassword(value)) {
+                throw new Error("Password is not strong enough!!" + value);
+            }
+        }
+    },
+    age: {
+        type: Number,
+        min: 18,
+    },
+    gender: {
+    },
+    password: {
+        type: String,
+        required: true,
+        validate(value) {
+            if(!validator.isStrongPassword(value)) {
+                throw new Error("Password is not strong enough!!" + value);
+            }
+        }
     },
     age: {
         type: Number,
@@ -34,7 +63,12 @@ const userSchema = new mongoose.Schema({
     },
     photoUrl: {
         type: String,
-        defayult: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+        defayult: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png",
+        validate(value) {
+            if(!validator.isURL(value)) {
+                throw new Error("URL is invalid!!" + value);
+            }
+        }
     },
     about: {
         type: String,

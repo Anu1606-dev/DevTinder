@@ -100,6 +100,8 @@ app.patch("/updateUser/:userId", async (req, res) => {
     }
 });
 
+// Validator (authenticatio middleware or library) to check if the user is authorized to access the API or not
+
 //Best practice-> connect the database first before starting the application
 connectDB().then(() => {
     // connect to database first 
