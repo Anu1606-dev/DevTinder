@@ -10,6 +10,7 @@ const bcrypt = require('bcrypt'); // importing bcryptjs module to hash the passw
 
 app.use(express.json()); // middleware to parse JSON request bodies
 
+// api for signup
 app.post("/signup", async (req, res) => {
 
     try {
@@ -45,6 +46,31 @@ app.post("/signup", async (req, res) => {
         res.status(500).send("Error while creating user!!");
     }
 });
+
+// api for login
+app.post("/login", async (req, res) => {
+    try{
+        const { emailId, password } = req.body;
+        const user = await User.findOne({email: emailId.toLowerCase()}); // finding the user by email in the database (lowercase to match stored value)
+        if(!user){
+            return res.status(401).send("Invalid credentials!!");
+        }
+        // check for emailId and password validation
+        
+        const isPasswordValid = await bcrypt.compare(password, user.password); // comparing the provided password with the hashed password in the database
+        if(isPasswordValid){
+            res.send("User logged in successfully!!");
+        }else{
+            return res.status(401).send("Invalid credentials!!");
+        }
+
+    } catch (err) {
+        // handling any errors that occur during the save operation
+        console.log("Error while logging in user!!");
+        console.log(err);
+        res.status(500).send("Error while logging in user!!");
+    }
+})
 
 // get user by email
 app.get("/user", async (req, res) => {
