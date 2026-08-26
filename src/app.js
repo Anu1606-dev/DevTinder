@@ -7,8 +7,12 @@ const port = 7777;
 const mongoose = require('mongoose');
 const { validateSignupData } = require('./utils/validate'); // importing the validation function for signup data
 const bcrypt = require('bcrypt'); // importing bcryptjs module to hash the password before saving to the database
+const cookieParser = require('cookie-parser'); // importing cookie-parser module to parse cookies from the request headers
+const jwt = require('jsonwebtoken'); // importing jsonwebtoken module to create and verify JWT tokens
 
+app.use(cookieParser()); // middleware to parse cookies from the request headers
 app.use(express.json()); // middleware to parse JSON request bodies
+
 
 // api for signup
 app.post("/signup", async (req, res) => {
@@ -22,7 +26,7 @@ app.post("/signup", async (req, res) => {
 
         //encrypting the password before saving to the database
         const passwordHash = await bcrypt.hash(password, 10); // hashing the password with a salt round of 10
-        
+
         // creating a new user instance using the User model
         const user = new User({
             firstName,
@@ -32,7 +36,7 @@ app.post("/signup", async (req, res) => {
             age,
             gender,
         }); // creating a new user instance using the User model
-        
+
         // saving the user instance to the database
         await user.save();
 
@@ -49,19 +53,26 @@ app.post("/signup", async (req, res) => {
 
 // api for login
 app.post("/login", async (req, res) => {
-    try{
+    try {
         const { emailId, password } = req.body;
-        const user = await User.findOne({email: emailId.toLowerCase()}); // finding the user by email in the database (lowercase to match stored value)
-        if(!user){
+        const user = await User.findOne({ email: emailId.toLowerCase() }); // finding the user by email in the database (lowercase to match stored value)
+        if (!user) {
             return res.status(401).send("Invalid credentials!!");
         }
         // check for emailId and password validation
-        
+
         const isPasswordValid = await bcrypt.compare(password, user.password); // comparing the provided password with the hashed password in the database
-        if(isPasswordValid){
-            res.send("User logged in successfully!!");
-        }else{
-            return res.status(401).send("Invalid credentials!!");
+        if (isPasswordValid) {
+            // logic of JWT authentication and concept of cookies
+            // Creating JWT token
+            const token = await jwt.sign({ _id: user._id }, "DEV@Tinder$799087"); // creating a JWT token with the user's ID and a secret key, expiring in 1 hour
+
+            //Add the token to cookie and send the response back to the user
+            res.cookie("token", token);
+
+            return res.send("User logged in successfully!!");
+        } else {
+            throw new Error("Invalid credentials!!");
         }
 
     } catch (err) {
@@ -69,6 +80,36 @@ app.post("/login", async (req, res) => {
         console.log("Error while logging in user!!");
         console.log(err);
         res.status(500).send("Error while logging in user!!");
+    }
+})
+
+// get profile of the user
+app.get("/profile", async (req, res) => {
+    try {
+        const cookies = req.cookies;
+        const {token} = cookies;
+        if(!token) {
+            throw new Error("Invalid token!!");
+        }
+
+        // validate my token 
+        const decodedMessage = await jwt.verify(token, "DEV@Tinder$799087");
+        const { _id } = decodedMessage;
+
+        const user = await User.findById({ _id });
+        if (!user) {
+            return res.status(404).send("User not found!!");
+        }else{
+            res.send(user);
+        }
+
+        console.log(cookies);
+        res.send("Reading cookies from the request headers!!");
+
+    } catch(err){
+        console.log("Error while fetching user profile!!");
+        console.log(err);
+        res.status(500).send("Error while fetching user profile!!");
     }
 })
 
