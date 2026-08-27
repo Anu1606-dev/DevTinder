@@ -2,108 +2,20 @@
 const express = require('express');
 const connectDB = require('./config/database');
 const app = express();
-const User = require('./models/user');
 const port = 7777;
-const mongoose = require('mongoose');
-const { validateSignupData } = require('./utils/validate'); // importing the validation function for signup data
-const bcrypt = require('bcrypt'); // importing bcryptjs module to hash the password before saving to the database
 const cookieParser = require('cookie-parser'); // importing cookie-parser module to parse cookies from the request headers
-const jwt = require('jsonwebtoken'); // importing jsonwebtoken module to create and verify JWT tokens
-const {userAuth} = require('./middlewares/auth'); // importing the userAuth middleware to validate the JWT token and authorize the user
 
 app.use(cookieParser()); // middleware to parse cookies from the request headers
 app.use(express.json()); // middleware to parse JSON request bodies
 
+const authRouter = require('./routes/auth'); // importing the auth router
+const requestRouter = require('./routes/request');
+const profileRouter = require('./routes/profile'); // importing the profile router
 
-// api for signup
-app.post("/signup", async (req, res) => {
+app.use("/", authRouter); // using the auth router for all routes starting with /auth
+app.use("/", requestRouter);
+app.use("/", profileRouter); // using the profile router for all routes starting with /profile
 
-    try {
-        // validation of data
-        validateSignupData(req);
-
-        // destructuring the request body to get the user data
-        const { firstName, lastName, emailId, password, age, gender } = req.body;
-
-        //encrypting the password before saving to the database
-        const passwordHash = await bcrypt.hash(password, 10); // hashing the password with a salt round of 10
-
-        // creating a new user instance using the User model
-        const user = new User({
-            firstName,
-            lastName,
-            email: emailId,
-            password: passwordHash, // saving the hashed password
-            age,
-            gender,
-        }); // creating a new user instance using the User model
-
-        // saving the user instance to the database
-        await user.save();
-
-        // sending a response back to the client
-        res.send("User created successfully!!");
-
-    } catch (err) {
-        // handling any errors that occur during the save operation
-        console.log("Error while creating user!!");
-        console.log(err);
-        res.status(500).send("Error while creating user!!");
-    }
-});
-
-// api for login
-app.post("/login", async (req, res) => {
-    try {
-        const { emailId, password } = req.body;
-        const user = await User.findOne({ email: emailId.toLowerCase() }); // finding the user by email in the database (lowercase to match stored value)
-        if (!user) {
-            return res.status(401).send("Invalid credentials!!");
-        }
-        // check for emailId and password validation
-
-        const isPasswordValid = await user.validatePassword(password); // comparing the provided password with the hashed password in the database
-        if (isPasswordValid) {
-            const token = await user.getJWT(); 
-            res.cookie("token", token, { expires: new Date(Date.now() + 7 * 24 * 3600000) }); // setting the token in a cookie with max age of 7 days
-            res.send("User logged in successfully!!");
-        } else {
-            throw new Error("Invalid credentials!!");
-        }
-
-    } catch (err) {
-        console.log("Error while logging in user!!");
-        console.log(err);
-        res.status(500).send("Error while logging in user!!");
-    }
-})
-
-// get profile of the user
-app.get("/profile", userAuth, async (req, res) => {
-    try {
-        const user = req.user; // getting the user object from the request object set by the userAuth middleware
-        res.send(user); // sending the user object as a response back to the client
-
-    } catch(err){
-        console.log("Error while fetching user profile!!");
-        console.log(err);
-        res.status(500).send("Error while fetching user profile!!");
-    }
-});
-
-// api for sending connection request to another user
-app.post("/sendConnectionRequest", userAuth, async(req, res) => {
-    try{
-        const user = req.user; // getting the user object from the request object set by the userAuth middleware
-        // sending a connection request to another user
-        console.log("sending Request sent");
-
-        res.send(user.firstName + " " + "sent the connection request successfully!!");
-
-    }catch(err){
-        res.status(500).send("Error while sending connection request!!");
-    }
-})
 
 //Best practice-> connect the database first before starting the application
 connectDB().then(() => {
