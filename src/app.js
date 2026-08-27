@@ -66,12 +66,11 @@ app.post("/login", async (req, res) => {
         if (isPasswordValid) {
             // logic of JWT authentication and concept of cookies
             // Creating JWT token
-            const token = await jwt.sign({ _id: user._id }, "DEV@Tinder$799087"); // creating a JWT token with the user's ID and a secret key, expiring in 1 hour
+            const token = await jwt.sign({ _id: user._id }, "DEV@Tinder$799087", {expiresIn: "7d"} ); // creating a JWT token with the user's ID and a secret key, expiring in 1 hour
 
             //Add the token to cookie and send the response back to the user
-            res.cookie("token", token);
-
-            return res.send("User logged in successfully!!");
+            res.cookie("token", token, { expires: new Date(Date.now() + 7*3600000 )}); // setting the token in a cookie with httpOnly flag and max age of 1 hour
+            res.send("User logged in successfully!!");
         } else {
             throw new Error("Invalid credentials!!");
         }
@@ -97,7 +96,19 @@ app.get("/profile", userAuth, async (req, res) => {
     }
 });
 
+// api for sending connection request to another user
+app.post("/sendConnectionRequest", userAuth, async(req, res) => {
+    try{
+        const user = req.user; // getting the user object from the request object set by the userAuth middleware
+        // sending a connection request to another user
+        console.log("sending Request sent");
 
+        res.send(user.firstName + " " + "sent the connection request successfully!!");
+
+    }catch(err){
+        res.status(500).send("Error while sending connection request!!");
+    }
+})
 
 //Best practice-> connect the database first before starting the application
 connectDB().then(() => {
