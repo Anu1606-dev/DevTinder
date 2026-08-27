@@ -62,21 +62,16 @@ app.post("/login", async (req, res) => {
         }
         // check for emailId and password validation
 
-        const isPasswordValid = await bcrypt.compare(password, user.password); // comparing the provided password with the hashed password in the database
+        const isPasswordValid = await user.validatePassword(password); // comparing the provided password with the hashed password in the database
         if (isPasswordValid) {
-            // logic of JWT authentication and concept of cookies
-            // Creating JWT token
-            const token = await jwt.sign({ _id: user._id }, "DEV@Tinder$799087", {expiresIn: "7d"} ); // creating a JWT token with the user's ID and a secret key, expiring in 1 hour
-
-            //Add the token to cookie and send the response back to the user
-            res.cookie("token", token, { expires: new Date(Date.now() + 7*3600000 )}); // setting the token in a cookie with httpOnly flag and max age of 1 hour
+            const token = await user.getJWT(); 
+            res.cookie("token", token, { expires: new Date(Date.now() + 7 * 24 * 3600000) }); // setting the token in a cookie with max age of 7 days
             res.send("User logged in successfully!!");
         } else {
             throw new Error("Invalid credentials!!");
         }
 
     } catch (err) {
-        // handling any errors that occur during the save operation
         console.log("Error while logging in user!!");
         console.log(err);
         res.status(500).send("Error while logging in user!!");

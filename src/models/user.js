@@ -4,7 +4,9 @@ const mongoose = require('mongoose');
 // validator is a npm library that provides string validation and sanitization functions
 // importing validator module to validate email
 const validator = require('validator');
-// creating a schema for user model
+
+const bcrypt = require('bcrypt'); // importing bcryptjs module to hash the password before saving to the database
+
 const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
@@ -63,5 +65,25 @@ const userSchema = new mongoose.Schema({
 {
     timestamps: true,  
 });
+
+userSchema.methods.getJWT = async function() {
+    const user = this; // this refers to the current user instance
+
+    const token = await jwt.sign(
+        { _id: user._id }, 
+        "DEV@Tinder$799087", 
+        {expiresIn: "7d"} 
+    ); // creating a JWT token with the user's ID and a secret key, expiring in 1 hour
+
+    return token;
+}
+
+userSchema.methods.validatePassword = async function(passwordInputByUser){
+    const user = this;
+    const passwordHash = user.password; // getting the hashed password from the user instance
+    const isPasswordValid = await bcrypt.compare(passwordInputByUser, passwordHash); // comparing the provided password with the hashed password in the database
+
+    return isPasswordValid;
+}
 
 module.exports = mongoose.model('User', userSchema);
