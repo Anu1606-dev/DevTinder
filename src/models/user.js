@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 // validator is a npm library that provides string validation and sanitization functions
 // importing validator module to validate email
 const validator = require('validator');
-
+const jwt = require('jsonwebtoken'); // importing jsonwebtoken module to create and verify JWT tokens
 const bcrypt = require('bcrypt'); // importing bcryptjs module to hash the password before saving to the database
 
 const userSchema = new mongoose.Schema({
