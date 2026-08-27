@@ -9,6 +9,7 @@ const { validateSignupData } = require('./utils/validate'); // importing the val
 const bcrypt = require('bcrypt'); // importing bcryptjs module to hash the password before saving to the database
 const cookieParser = require('cookie-parser'); // importing cookie-parser module to parse cookies from the request headers
 const jwt = require('jsonwebtoken'); // importing jsonwebtoken module to create and verify JWT tokens
+const {userAuth} = require('./middlewares/auth'); // importing the userAuth middleware to validate the JWT token and authorize the user
 
 app.use(cookieParser()); // middleware to parse cookies from the request headers
 app.use(express.json()); // middleware to parse JSON request bodies
@@ -84,112 +85,19 @@ app.post("/login", async (req, res) => {
 })
 
 // get profile of the user
-app.get("/profile", async (req, res) => {
+app.get("/profile", userAuth, async (req, res) => {
     try {
-        const cookies = req.cookies;
-        const {token} = cookies;
-        if(!token) {
-            throw new Error("Invalid token!!");
-        }
-
-        // validate my token 
-        const decodedMessage = await jwt.verify(token, "DEV@Tinder$799087");
-        const { _id } = decodedMessage;
-
-        const user = await User.findById({ _id });
-        if (!user) {
-            return res.status(404).send("User not found!!");
-        }else{
-            res.send(user);
-        }
-
-        console.log(cookies);
-        res.send("Reading cookies from the request headers!!");
+        const user = req.user; // getting the user object from the request object set by the userAuth middleware
+        res.send(user); // sending the user object as a response back to the client
 
     } catch(err){
         console.log("Error while fetching user profile!!");
         console.log(err);
         res.status(500).send("Error while fetching user profile!!");
     }
-})
-
-// get user by email
-app.get("/user", async (req, res) => {
-    // Prefer query param for GET, fallback to body if provided
-    const email = (req.query.email || req.body?.email || "").trim();
-    if (!email) {
-        return res.status(400).send("Email is required. Use /user?email=example@gmail.com");
-    }
-    try {
-        // finding the user by email in the database
-        const user = await User.findOne({ email });
-
-        if (!user) {
-            // if user is not found, send a 404 response
-            return res.status(404).send("User not found!!");
-        }
-        // send found user
-        return res.status(200).json(user);
-    } catch (err) {
-        // handling any errors that occur during the find operation
-        console.log("Error while fetching user!!");
-        console.log(err);
-        return res.status(500).send("Error while fetching user!!");
-    }
 });
 
-// Feed API -Get /feed - get all the users from the database
-app.get("/feed", async (req, res) => {
-    try {
-        const users = await User.find({});
-        res.send(users);
-    } catch (err) {
-        res.status(400).send("Error while fetching users!!");
-    }
-});
 
-// delete user
-app.delete("/deletedUser", async (req, res) => {
-    const userId = req.body.userId;
-    try {
-        const user = await User.findByIdAndDelete({ _id: userId });
-        res.send("User deleted successfully!!");
-    } catch (err) {
-        res.status(400).send("Error while deleting user!!");
-    }
-})
-
-// update dat aof the user
-app.patch("/updateUser/:userId", async (req, res) => {
-    const userId = req.params?.userId;
-    const data = req.body;
-
-
-    try {
-        const ALLOWED_UPDATES = ["firstName", "lastName", "password", "age", "skills", "about", "photoUrl"];
-        const isUpdateAllowed = Object.keys(data).every((key) => ALLOWED_UPDATES.includes(key));
-        if (!isUpdateAllowed) {
-            throw new error("Invalid updates!!");
-        }
-        if (data?.skills.length > 10) {
-            throw new error("Skills cannot be more than 10!!");
-        }
-
-        const user = await User.findByIdAndUpdate(
-            { _id: userId },
-            data,
-            { returnDocument: 'before', runValidators: true }
-        );
-        console.log(userId);
-        res.send("User updated successfully!!");
-    } catch (err) {
-        console.log("Error while updating user!!");
-        console.log(err);
-        res.status(400).send("Error while updating user!!");
-    }
-});
-
-// Validator (authenticatio middleware or library) to check if the user is authorized to access the API or not
 
 //Best practice-> connect the database first before starting the application
 connectDB().then(() => {
