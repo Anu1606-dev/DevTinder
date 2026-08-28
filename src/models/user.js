@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
         required: true,
+        index: true,
         minlength: 4,
         maxlength: 30,
     },
@@ -64,6 +65,8 @@ const userSchema = new mongoose.Schema({
 {
     timestamps: true,  
 });
+
+userSchema.index({firstName: 1, lastName: 1, email: 1}); // creating a compound index on firstName, lastName, and email to ensure uniqueness of users
 
 userSchema.methods.getJWT = async function() {
     const user = this; // this refers to the current user instance
