@@ -21,6 +21,14 @@ const connectionRequestSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// pre-save middleware to check if the fromUserId and toUserId are the same
+connectionRequestSchema.pre("save", function () {
+    const connectionRequest = this;
+    if (connectionRequest.fromUserId.equals(connectionRequest.toUserId)) {
+        throw new Error("Cannot send connection request to yourself!!");
+    } 
+    next();
+});
 
 const connectionRequestModel = new mongoose.model(
     "ConnectionRequest", 
