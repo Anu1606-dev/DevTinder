@@ -11,10 +11,12 @@ app.use(express.json()); // middleware to parse JSON request bodies
 const authRouter = require('./routes/auth'); // importing the auth router
 const requestRouter = require('./routes/request');
 const profileRouter = require('./routes/profile'); // importing the profile router
+const userRouter = require('./routes/user'); // importing the user router
 
 app.use("/", authRouter); // using the auth router for all routes starting with /auth
 app.use("/", requestRouter);
 app.use("/", profileRouter); // using the profile router for all routes starting with /profile
+app.use("/", userRouter); // using the user router for all routes starting with /user
 
 
 //Best practice-> connect the database first before starting the application
