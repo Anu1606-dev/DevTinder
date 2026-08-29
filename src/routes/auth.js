@@ -35,9 +35,8 @@ authRouter.post("/signup", async (req, res) => {
 
     } catch (err) {
         // handling any errors that occur during the save operation
-        res.send("Error while creating user!!");
         console.log(err);
-        res.status(500).send("Error while creating user!!");
+        res.status(500).send("Error while creating user!!")
     }
 });
 
@@ -79,8 +78,7 @@ authRouter.post("/logout", async (req, res) => {
         res.end("User logged out successfully!!");
           
     }catch (err) {
-        res.end("Error while logging out user!!");
-        res.status(500).send("Error while logging out user!!");
+        res.status(500).send("Error while logging out user!!")
     }
 })
 
