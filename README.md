@@ -1,2 +1,2 @@
-# DevTinder
-A Tinder-inspired developer networking platform where developers can discover, connect and grow with fellow developers across the developer community.
+# DevTinder-Backend
+Backend REST API for DevTinder — a Tinder-style app for developers. Built with Node.js, Express, and MongoDB.
