@@ -5,6 +5,7 @@ const User = require('../models/user');
 const bcrypt = require('bcrypt'); // importing bcryptjs module to hash the password before saving to the database
 
 
+
 authRouter.post("/signup", async (req, res) => {
 
     try {
@@ -58,7 +59,7 @@ authRouter.post("/login", async (req, res) => {
         if (isPasswordValid) {
             const token = await user.getJWT(); 
             res.cookie("token", token, { expires: new Date(Date.now() + 7 * 24 * 3600000) }); // setting the token in a cookie with max age of 7 days
-            res.send("User logged in successfully!!");
+            res.send(user);
         } else {
             return res.status(401).send("Invalid credentials!!");
         }

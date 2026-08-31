@@ -4,7 +4,12 @@ const connectDB = require('./config/database');
 const app = express();
 const port = 7777;
 const cookieParser = require('cookie-parser'); // importing cookie-parser module to parse cookies from the request headers
+const cors = require('cors'); // importing cors module to enable Cross-Origin Resource Sharing (CORS) for all routes
 
+app.use(cors({
+    origin: "http://localhost:5173", // your Vite dev server URL — confirm the port matches
+    credentials: true
+}));
 app.use(cookieParser()); // middleware to parse cookies from the request headers
 app.use(express.json()); // middleware to parse JSON request bodies
 
