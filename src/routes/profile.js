@@ -9,9 +9,10 @@ const { validateEditProfileData } = require('../utils/validate'); // importing t
 // profile route to get the user profile data
 profileRouter.get("/profile/view", userAuth, async (req, res) => {
     try {
-        const user = req.user; // getting the user object from the request object set by the userAuth middleware
-        res.send(user); // sending the user object as a response back to the client
-
+        const user = req.user;
+        const userObj = user.toObject();
+        delete userObj.password;
+        res.send(userObj);
     } catch(err){
         console.log("Error while fetching user profile!!");
         console.log(err);
