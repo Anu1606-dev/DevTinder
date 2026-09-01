@@ -4,7 +4,7 @@ const { userAuth } = require('../middlewares/auth');
 const ConnectionRequest = require('../models/connectionRequest');
 const User = require('../models/user');
 
-const USER_SAFE_DATA = ["firstName", "lastName", "photoUrl", "about", "skills"];
+const USER_SAFE_DATA = ["firstName", "lastName", "photoUrl", "about", "skills", "age"];
 
 // get all the pending connection requests for the logged in user
 userRouter.get("/user/requests/received", userAuth, async (req, res) => {
@@ -35,8 +35,6 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
             ]
         }).populate("fromUserId", USER_SAFE_DATA).populate("toUserId", USER_SAFE_DATA);
 
-        console.log(connectionRequests);
-
         const data = connectionRequests.map((row) => {
             if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
                 return row.toUserId;
@@ -56,7 +54,7 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
         const loggedInUser = req.user;
         const page = parseInt(req.query.page) || 1;
         let limit = parseInt(req.query.limit) || 10;
-        limit = limit > 50 ? 50 : limit; // Limiting the maximum number of users per page to 50
+        limit = limit > 50 ? 50 : limit;
         const skip = (page - 1) * limit;
 
         const connectionRequests = await ConnectionRequest.find({
@@ -90,4 +88,3 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
 })
 
 module.exports = userRouter;
-

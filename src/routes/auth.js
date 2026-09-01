@@ -4,8 +4,6 @@ const { validateSignupData } = require('../utils/validate'); // importing the va
 const User = require('../models/user');
 const bcrypt = require('bcrypt'); // importing bcryptjs module to hash the password before saving to the database
 
-
-
 authRouter.post("/signup", async (req, res) => {
 
     try {
@@ -57,9 +55,12 @@ authRouter.post("/login", async (req, res) => {
 
         const isPasswordValid = await user.validatePassword(password); // comparing the provided password with the hashed password in the database
         if (isPasswordValid) {
-            const token = await user.getJWT(); 
-            res.cookie("token", token, { expires: new Date(Date.now() + 7 * 24 * 3600000) }); // setting the token in a cookie with max age of 7 days
-            res.send(user);
+            const token = await user.getJWT();
+            res.cookie("token", token, { expires: new Date(Date.now() + 7 * 24 * 3600000) });
+
+            const userObj = user.toObject();
+            delete userObj.password;
+            res.send(userObj);
         } else {
             return res.status(401).send("Invalid credentials!!");
         }
@@ -77,8 +78,8 @@ authRouter.post("/logout", async (req, res) => {
             expires: new Date(Date.now()),
         });
         res.end("User logged out successfully!!");
-          
-    }catch (err) {
+
+    } catch (err) {
         res.status(500).send("Error while logging out user!!")
     }
 })
