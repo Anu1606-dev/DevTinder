@@ -22,6 +22,7 @@ const validateEditProfileData = (req) => {
         "age",
         "gender",
         "emailId",
+        "photoUrl",
         "skills",
         "about"
     ];
@@ -31,7 +32,6 @@ const validateEditProfileData = (req) => {
     );
 
     return isEditAllowed;
-
 };
 
 module.exports = {
