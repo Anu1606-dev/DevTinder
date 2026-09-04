@@ -1,41 +1,38 @@
 const express = require("express");
 const authRouter = express.Router();
-const { validateSignupData } = require('../utils/validate'); // importing the validation function for signup data
+const { validateSignupData } = require('../utils/validate');
 const User = require('../models/user');
-const bcrypt = require('bcrypt'); // importing bcryptjs module to hash the password before saving to the database
+const bcrypt = require('bcrypt');
 
 authRouter.post("/signup", async (req, res) => {
 
     try {
-        // validation of data
         validateSignupData(req);
 
-        // destructuring the request body to get the user data
         const { firstName, lastName, emailId, password, age, gender } = req.body;
 
-        //encrypting the password before saving to the database
-        const passwordHash = await bcrypt.hash(password, 10); // hashing the password with a salt round of 10
+        const passwordHash = await bcrypt.hash(password, 10);
 
-        // creating a new user instance using the User model
         const user = new User({
             firstName,
             lastName,
             email: emailId,
-            password: passwordHash, // saving the hashed password
+            password: passwordHash,
             age,
             gender,
-        }); // creating a new user instance using the User model
+        });
 
-        // saving the user instance to the database
         await user.save();
 
-        // sending a response back to the client
         res.send("User created successfully!!");
 
     } catch (err) {
-        // handling any errors that occur during the save operation
         console.log(err);
-        res.status(500).send("Error while creating user!!")
+        if (err.code === 11000) {
+            // MongoDB duplicate key error (email already has a unique index)
+            return res.status(400).send("An account with this email already exists!!");
+        }
+        res.status(400).send(err.message || "Error while creating user!!");
     }
 });
 
@@ -47,20 +44,16 @@ authRouter.post("/login", async (req, res) => {
             return res.status(400).send("Email and password are required!!");
         }
 
-        const user = await User.findOne({ email: emailId.trim().toLowerCase() }); // finding the user by email in the database (lowercase to match stored value)
+        const user = await User.findOne({ email: emailId.trim().toLowerCase() });
         if (!user) {
             return res.status(401).send("Invalid credentials!!");
         }
-        // check for emailId and password validation
 
-        const isPasswordValid = await user.validatePassword(password); // comparing the provided password with the hashed password in the database
+        const isPasswordValid = await user.validatePassword(password);
         if (isPasswordValid) {
             const token = await user.getJWT();
             res.cookie("token", token, { expires: new Date(Date.now() + 7 * 24 * 3600000) });
-
-            const userObj = user.toObject();
-            delete userObj.password;
-            res.send(userObj);
+            res.send(user);
         } else {
             return res.status(401).send("Invalid credentials!!");
         }
@@ -85,6 +78,3 @@ authRouter.post("/logout", async (req, res) => {
 })
 
 module.exports = authRouter;
-
-
-
