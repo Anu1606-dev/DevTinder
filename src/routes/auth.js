@@ -9,7 +9,7 @@ authRouter.post("/signup", async (req, res) => {
     try {
         validateSignupData(req);
 
-        const { firstName, lastName, emailId, password, age, gender } = req.body;
+        const { firstName, lastName, emailId, password, age, gender, photoUrl } = req.body;
 
         const passwordHash = await bcrypt.hash(password, 10);
 
@@ -20,6 +20,7 @@ authRouter.post("/signup", async (req, res) => {
             password: passwordHash,
             age,
             gender,
+            photoUrl,
         });
 
         await user.save();
@@ -29,7 +30,6 @@ authRouter.post("/signup", async (req, res) => {
     } catch (err) {
         console.log(err);
         if (err.code === 11000) {
-            // MongoDB duplicate key error (email already has a unique index)
             return res.status(400).send("An account with this email already exists!!");
         }
         res.status(400).send(err.message || "Error while creating user!!");
